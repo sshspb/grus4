@@ -19,7 +19,7 @@
 #define BUFF_SIZE 64
 #define USERS_COUNT 5
 
-const char* comrade[USERS_COUNT] = {"+79213303129", "+79214201935", "+79219258698", "+79213320218", "+79214060453"};
+const char* comrade[USERS_COUNT] = {"+7XXXXXXXXX", "+7XXXXXXXXX", "+7XXXXXXXXX", "+7XXXXXXXXX", "+7XXXXXXXXX"};
 const uint8_t deviceAddress[8] = {0x28, 0x79, 0xE9, 0x45, 0x92, 0x15, 0x02, 0x90};
 const uint16_t temp_null = 1584;  // 1584 = 99 * 16  = 0x063E
 const char lineFeed = '\n';
@@ -309,7 +309,7 @@ void energySourceSMS() {
 void reportTCP() {
   // передать информацию на TCP-сервер 
   LD.printString_6x8("start TCP", 0, 4); 
-  modem.println("AT+CIPSTART=\"UDP\",\"109.236.103.6\",3333"); 
+  modem.println("AT+CIPSTART=\"UDP\",\"XXX.XXX.XXX.XXX\",XXXX"); 
   delay(7000);
   modem.println("AT+CIPSEND");
   delay(2000);
