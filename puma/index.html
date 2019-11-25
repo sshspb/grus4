@@ -16,12 +16,15 @@
 </head>
 
 <body style="background-color: #d0d8e0;">
-  <div style="background-color: #FFF; width:480px; margin: auto; ">
-    <div style="width: 480px; height: 240px;">
-      <div id="chart_div_gaugetemp" style="width: 240px; height: 240px; text-align: center; float:left;"></div>
-      <div id="div_text" style='font-family: "Lucida Console", Monospace; font-size:16px; color: #505050; width: 240px; height: 240px; text-align: center; float:left;'></div>
+  <div style="background-color: #FFF; width:375px; margin: auto; ">
+    <header style="background-color: #9e9e9e;">
+      <p style="text-align: center; color: #FFFFFF; font-size: 20px; padding: 5px;">Журавлиное</p>
+    </header>
+    <div style="width: 375px; height: 200px;">
+      <div id="chart_div_gaugetemp" style="width: 185px; height: 200px; text-align: center; float:left;"></div>
+      <div id="div_text" style='font-family: "Lucida Console", Monospace; font-size:16px; color: #505050; width: 190px; height: 200px; text-align: center; float:left;'></div>
     </div>
-    <div id="chart_div_linetemp" style="width: 480px; height: 240px;"></div>
+    <div id="chart_div_linetemp" style="width: 375px; height: 240px;"></div>
     <footer style="background-color: #9e9e9e;">
       <p style="text-align: center; color: #FFFFFF; font-size: 20px; padding: 5px;">Журавлиное</p>
     </footer>
@@ -100,7 +103,7 @@
       var data = google.visualization.arrayToDataTable([['Label', 'Value'], ['Темп', athomelast]]);
       var chart = new google.visualization.Gauge(document.getElementById('chart_div_gaugetemp'));
       chart.draw(data, {
-        min:0, max:20, width:240, height:240, minorTicks:5, 
+        min:0, max:20, width:185, height:185, minorTicks:5, 
         majorTicks:["0","5","10","15","20"]
       });
       // Chart 
@@ -110,14 +113,17 @@
       var options = {
         hAxis: {ticks: [-72,-48,-24,0], minorGridlines: {count: 5} },
         vAxis: {ticks: majorTicks, minorGridlines: {count: 4} },
-        chartArea: {left:75, right:150}, 
+//        chartArea: {left:75, right:150}, 
+        chartArea: {left:30, right:10}, 
         curveType: 'function',
         colors: ['#CD5C5C', '#093871'],
         titleTextStyle: {color: '#707070' },
 //        title: 'Последние 72 часа',
-        fontSize: 20,
+        fontSize: 14,
         titlePosition: 'out',
-        legend: {position: 'right', textStyle: {color: '#093871', fontSize: 20}}
+//        legend: {position: 'right', textStyle: {color: '#093871', fontSize: 20}}
+//        legend: {position: 'top', textStyle: {color: '#093871', fontSize: 12}}
+        legend: 'none'
       };
       var chart = new google.visualization.LineChart(document.getElementById('chart_div_linetemp'));
       chart.draw(data, options);

@@ -12,7 +12,7 @@ server.on('error', (err) => {
 });
 
 server.on('message', (msg, rinfo) => {
-  
+
   var date = new Date(Date.now());
   console.log(`\ndate ${date.toString()}`);
   console.log(`server got: ${msg} \nfrom ${rinfo.address}:${rinfo.port}`);
@@ -32,10 +32,26 @@ server.on('message', (msg, rinfo) => {
     }
   }
   docs.data = data;
-  // weather data in Toksovo
-  request(config.openweathermapUrl, function (error, response, body) {
+  // weather data by geographic coordinates
+  request(config.openweathermapUrlGeoCoo, function (error, response, body) {
     if (!error && response && (response.statusCode == 200)) {
-      result = JSON.parse(body);
+      var result = JSON.parse(body);
+      if (!result.main.temp) {
+        // weather data in Toksovo
+        request(config.openweathermapUrlToksovo, function (error, response, body) {
+          if (!error && response && (response.statusCode == 200)) {
+            result = JSON.parse(body);
+            if (!result.main.temp) {
+              // weather data in Oselki
+              request(config.openweathermapUrlOselki, function (error, response, body) {
+                if (!error && response && (response.statusCode == 200)) {
+                  result = JSON.parse(body);
+                }
+              });
+            }
+          }
+        });
+      }
       docs.tout = (result.main.temp - 273.15).toFixed(1);
     }
     // save to database on mLab.com
