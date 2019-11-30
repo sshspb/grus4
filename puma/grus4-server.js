@@ -5,6 +5,22 @@ const request = require('request');
 const config = require('./config');
 const server = dgram.createSocket('udp4');
 
+var docs = {"_id": Math.trunc(Date.now()/1000)};
+
+function savedata() {
+    // save to database on mLab.com
+    MongoClient.connect(config.mlabDB, {useNewUrlParser: true}, function(err, client) {
+      assert.equal(null, err);
+      console.log("Connected successfully to server mlab");
+      const db = client.db(config.dbName);
+      const collection = db.collection('toksovo');
+      collection.insertOne(docs, function(err, result) {
+        assert.equal(err, null);
+        client.close();
+      });
+    });
+}
+
 server.on('error', (err) => {
   console.log(`server error:\n${err.stack}`);
 //  server.close();
@@ -16,7 +32,6 @@ server.on('message', (msg, rinfo) => {
   var date = new Date(Date.now());
   console.log(`\ndate ${date.toString()}`);
   console.log(`server got: ${msg} \nfrom ${rinfo.address}:${rinfo.port}`);
-  var docs = {"_id": Math.trunc(Date.now()/1000)};
   var data = [];
   var msgString = msg.toString();
   // control of belonging of the received information to our sensors
@@ -32,39 +47,39 @@ server.on('message', (msg, rinfo) => {
     }
   }
   docs.data = data;
-  // weather data by geographic coordinates
+  var result;
+  // weather data by Geographic Coordinates
   request(config.openweathermapUrlGeoCoo, function (error, response, body) {
     if (!error && response && (response.statusCode == 200)) {
-      var result = JSON.parse(body);
-      if (!result.main.temp) {
-        // weather data in Toksovo
-        request(config.openweathermapUrlToksovo, function (error, response, body) {
-          if (!error && response && (response.statusCode == 200)) {
-            result = JSON.parse(body);
-            if (!result.main.temp) {
-              // weather data in Oselki
-              request(config.openweathermapUrlOselki, function (error, response, body) {
-                if (!error && response && (response.statusCode == 200)) {
-                  result = JSON.parse(body);
-                }
-              });
-            }
-          }
-        });
-      }
+      result = JSON.parse(body);
       docs.tout = (result.main.temp - 273.15).toFixed(1);
-    }
-    // save to database on mLab.com
-    MongoClient.connect(config.mlabDB, {useNewUrlParser: true}, function(err, client) {
-      assert.equal(null, err);
-      console.log("Connected successfully to server mlab");
-      const db = client.db(config.dbName);
-      const collection = db.collection('toksovo');
-      collection.insertOne(docs, function(err, result) {
-        assert.equal(err, null);
-        client.close();
+      console.log(`openweathermapUrlGeoCoo: ${docs.tout}\n`);
+      savedata();
+    } else {
+      // weather data in Toksovo
+      console.log(`openweathermapUrlGeoCoo: fail\n`);
+      request(config.openweathermapUrlToksovo, function (error, response, body) {
+        if (!error && response && (response.statusCode == 200)) {
+          result = JSON.parse(body);
+          docs.tout = (result.main.temp - 273.15).toFixed(1);
+          console.log(`openweathermapUrlToksovo: ${docs.tout}\n`);
+          savedata();
+        } else {
+          // weather data in Oselki
+          console.log(`openweathermapUrlToksovo: fail\n`);
+          request(config.openweathermapUrlOselki, function (error, response, body) {
+            if (!error && response && (response.statusCode == 200)) {
+              result = JSON.parse(body);
+              docs.tout = (result.main.temp - 273.15).toFixed(1);
+              console.log(`openweathermapUrlOselki: ${docs.tout}\n`);
+            } else {
+              console.log(`openweathermapUrlOselki: fail\n`);
+            }
+            savedata();
+          });
+        }
       });
-    });
+    }
   });
 });
 
