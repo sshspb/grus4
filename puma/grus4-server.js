@@ -5,9 +5,7 @@ const request = require('request');
 const config = require('./config');
 const server = dgram.createSocket('udp4');
 
-var docs = {"_id": Math.trunc(Date.now()/1000)};
-
-function savedata() {
+function savedata(docs) {
     // save to database on mLab.com
     MongoClient.connect(config.mlabDB, {useNewUrlParser: true}, function(err, client) {
       assert.equal(null, err);
@@ -32,6 +30,7 @@ server.on('message', (msg, rinfo) => {
   var date = new Date(Date.now());
   console.log(`\ndate ${date.toString()}`);
   console.log(`server got: ${msg} \nfrom ${rinfo.address}:${rinfo.port}`);
+  var docs = {"_id": Math.trunc(Date.now()/1000)};
   var data = [];
   var msgString = msg.toString();
   // control of belonging of the received information to our sensors
@@ -53,29 +52,29 @@ server.on('message', (msg, rinfo) => {
     if (!error && response && (response.statusCode == 200)) {
       result = JSON.parse(body);
       docs.tout = (result.main.temp - 273.15).toFixed(1);
-      console.log(`openweathermapUrlGeoCoo: ${docs.tout}\n`);
-      savedata();
+      console.log(`openweathermapUrlGeoCoo: ${docs.tout}`);
+      savedata(docs);
     } else {
       // weather data in Toksovo
-      console.log(`openweathermapUrlGeoCoo: fail\n`);
+      console.log(`openweathermapUrlGeoCoo: fail`);
       request(config.openweathermapUrlToksovo, function (error, response, body) {
         if (!error && response && (response.statusCode == 200)) {
           result = JSON.parse(body);
           docs.tout = (result.main.temp - 273.15).toFixed(1);
-          console.log(`openweathermapUrlToksovo: ${docs.tout}\n`);
-          savedata();
+          console.log(`openweathermapUrlToksovo: ${docs.tout}`);
+          savedata(docs);
         } else {
           // weather data in Oselki
-          console.log(`openweathermapUrlToksovo: fail\n`);
+          console.log(`openweathermapUrlToksovo: fail`);
           request(config.openweathermapUrlOselki, function (error, response, body) {
             if (!error && response && (response.statusCode == 200)) {
               result = JSON.parse(body);
               docs.tout = (result.main.temp - 273.15).toFixed(1);
-              console.log(`openweathermapUrlOselki: ${docs.tout}\n`);
+              console.log(`openweathermapUrlOselki: ${docs.tout}`);
             } else {
-              console.log(`openweathermapUrlOselki: fail\n`);
+              console.log(`openweathermapUrlOselki: fail`);
             }
-            savedata();
+            savedata(docs);
           });
         }
       });
