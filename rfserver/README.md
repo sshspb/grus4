@@ -63,3 +63,13 @@ VOH     2.4  3.3   V
 Рекомендуемое соединение между модулем DCE (SIM800L) и DTE (ProMini 3.3v 8MHz) с уровнем логики 3,3 В:
 
 ![serialInterface](images/serialInterface.jpg)
+
+## Arduino ProMini 3.3v 8MHz
+
+![ProMini shema](images/Arduino-Pro-Mini-shema.jpg)
+
+![ProMini pinout](images/ProMini-ATmega328P-pinout.jpg)
+
+## nRF24L01+
+
+![nRF24L01](images/nrf24l01.jpg)
