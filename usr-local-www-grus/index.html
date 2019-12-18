@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" >
+  <meta name="viewport" content="width=device-width, initial-scale=1" >
+  <title>Журавлиное</title>
+  <link rel="stylesheet" href="/grus.css" >
+</head>
+
+<body style="background-color: #d0d8e0;">
+  <div style="background-color: #FFF; width:375px; margin: auto; ">
+    <header style="background-color: #9e9e9e;">
+      <p style="text-align: center; color: #FFFFFF; font-size: 20px; padding: 5px;">Журавлиное</p>
+    </header>
+    <div style="width: 375px; height: 200px;">
+      <div id="chart_div_gaugetemp" style="width: 185px; height: 200px; text-align: center; float:left;"></div>
+      <div id="div_text" style='font-family: "Lucida Console", Monospace; font-size:16px; color: #505050; width: 190px; height: 200px; text-align: center; float:left;'></div>
+    </div>
+    <div id="chart_div_linetemp" style="width: 375px; height: 240px;"></div>
+    <footer style="background-color: #9e9e9e;">
+      <p style="text-align: center; color: #FFFFFF; font-size: 20px; padding: 5px;">Журавлиное</p>
+    </footer>
+  </div>
+
+<script type="text/javascript" src="/charts-loader.js"></script>
+<script type="text/javascript">
+
+  google.charts.load('current', {'packages':['corechart', 'gauge']});
+  google.charts.setOnLoadCallback(drawLineWeek);
+
+  function drawLineWeek() {
+    var timestampnow = Math.round(Date.now()/1000);
+    var timestampfrom = timestampnow - 259200; // 60*60*72
+    var sensorstext = '';
+    var athomelast = 0.0;
+    var amlab = [];
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', '/mlab', false); // query the last 18 records
+    xhr.send();
+    if (xhr.status != 200) {
+      alert( xhr.status + ': ' + xhr.statusText );
+    } else {
+      amlab = JSON.parse(xhr.responseText);
+      var minTemp = 0, maxTemp = 0;
+      var adata = [[
+        {label: 'Часы', type: 'number'},
+        {label: 'Дом', type: 'number'},
+        {label: 'Улица', type: 'number'}
+      ]];
+      for (var i = 0; i < amlab.length; i++) {
+        var itimestamp = parseFloat(amlab[i]._id); // time
+        var hour = (itimestamp - timestampnow) / 3600;
+        if (hour < -72) continue;
+        var outdoor = parseFloat(amlab[i].tout); // outdoor temperature
+        if (!outdoor && i > 0 && i < amlab.length-1 && amlab[i-1].tout && amlab[i+1].tout) {
+          outdoor = (parseFloat(amlab[i-1].tout) + parseFloat(amlab[i+1].tout)) / 2.0;
+        }
+        var athome = parseFloat(amlab[i].tin); // house temperature
+        if (!i) { // last time message
+          athomelast = Number(amlab[i].tin);
+          var date = new Date(itimestamp * 1000);
+          sensorstext += date.toLocaleString("ru", {month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric'}) + '<br>';
+          sensorstext += 'На улице ' + amlab[i].tout + '&#176;C' + '<br>';
+          sensorstext += 'В доме ' + amlab[i].tin + '&#176;C' + '<br>';
+          sensorstext += 'Power ' + amlab[i].Power + '<br>';
+          sensorstext += 'Bat ' + amlab[i].Bat + '<br>';
+          sensorstext += 'SQ ' + amlab[i].SQ + '<br>';
+          sensorstext += 'Net ' + amlab[i].Net + '<br>';
+//          sensorstext += 'Relay ' + amlab[i].Relay;
+        }
+        adata.push([hour, athome, outdoor]); // chart data
+        // min max for marking the y-axis
+        if (minTemp > athome) minTemp = athome;
+        if (maxTemp < athome) maxTemp = athome;
+        if (minTemp > outdoor) minTemp = outdoor;
+        if (maxTemp < outdoor) maxTemp = outdoor;
+      }
+      document.getElementById("div_text").innerHTML = sensorstext;
+      // Gauge temperature at home
+      var data = google.visualization.arrayToDataTable([['Label', 'Value'], ['Темп', athomelast]]);
+      var chart = new google.visualization.Gauge(document.getElementById('chart_div_gaugetemp'));
+      chart.draw(data, {
+        min:0, max:20, width:185, height:185, minorTicks:5, 
+        majorTicks:["0","5","10","15","20"]
+      });
+      // Chart 
+      var majorTicks = [], iFrom = Math.round(minTemp/5), iTo = Math.round(maxTemp/5);
+      for (var i = iFrom; i <= iTo; i++) majorTicks.push(5*i);
+      var data = google.visualization.arrayToDataTable(adata);
+      var options = {
+        hAxis: {ticks: [-72,-48,-24,0], minorGridlines: {count: 5} },
+        vAxis: {ticks: majorTicks, minorGridlines: {count: 4} },
+        chartArea: {left:30, right:10}, 
+        curveType: 'function',
+        colors: ['#CD5C5C', '#093871'],
+        titleTextStyle: {color: '#707070' },
+        fontSize: 14,
+        titlePosition: 'out',
+        legend: 'none'
+      };
+      var chart = new google.visualization.LineChart(document.getElementById('chart_div_linetemp'));
+      chart.draw(data, options);
+    }
+  }
+</script>
+
+</body>
+</html>

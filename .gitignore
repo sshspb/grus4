@@ -1,3 +1,4 @@
 # Ignore some files and directories
 archive
 config.js
+charts-loader.js
