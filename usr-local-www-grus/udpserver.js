@@ -52,6 +52,7 @@ server.on('message', (msg, rinfo) => {
       docs.tout = (result.main.temp - 273.15).toFixed(1);
       docs.name = result.name;
       savedata(docs);
+/*
     } else {
       // Oselki
       request(config.openweathermapUrlOselki, function (error, response, body) {
@@ -85,6 +86,7 @@ server.on('message', (msg, rinfo) => {
           });
         }
       });
+*/
     }
   });
 });
